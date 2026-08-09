@@ -6,12 +6,22 @@
   "bin": {
     "mayi": "mayi.mjs"
   },
+  "files": [
+    "mayi.mjs",
+    "policy.yaml",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": ["mcp", "proxy", "policy"],
-  "author": "",
+  "author": "Abhinav Allani",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/abhinavallani02-cyber/mayI"
+  },
   "type": "commonjs",
   "dependencies": {
     "@modelcontextprotocol/server-filesystem": "^2026.7.10",
