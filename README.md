@@ -21,21 +21,47 @@ name (with glob support) plus an optional path-prefix check on arguments;
 there's no general condition language yet. It has not had a security
 review. Treat it as a working prototype, not a hardened boundary.
 
+## Install
+
+Not published to npm yet. For now, run it from a checkout:
+
+```
+git clone https://github.com/abhinavallani02-cyber/mayI
+cd mayI && npm install
+node mayi.mjs -- npx -y @modelcontextprotocol/server-filesystem /path/to/allow
+```
+
+Once it's published, the intended usage is `npx` (no install needed) or a
+global install:
+
+```
+npx mayi -- npx -y @modelcontextprotocol/server-filesystem /path/to/allow
+
+npm install -g mayi
+mayi -- npx -y @modelcontextprotocol/server-filesystem /path/to/allow
+```
+
+With no `--policy` flag and no `policy.yaml` in the current directory,
+mayI runs with a built-in conservative default: reads are allowed,
+everything else asks. So the commands above work with zero config — it'll
+prompt you the first time the agent tries to write, move, or otherwise
+change anything.
+
 ## Usage
 
 ```
-node mayi.mjs [--policy <file>] [--audit <file>] [--audit-include-args] -- <command> [args...]
+mayi [--policy <file>] [--audit <file>] [--audit-include-args] -- <command> [args...]
 ```
 
 Everything after `--` is the real MCP server to spawn and front. For
-example, to guard the filesystem server:
+example, to guard the filesystem server with your own policy:
 
 ```
-node mayi.mjs --policy policy.yaml --audit audit.jsonl -- \
-  node node_modules/@modelcontextprotocol/server-filesystem/dist/index.js /path/to/allow
+mayi --policy policy.yaml --audit audit.jsonl -- \
+  npx -y @modelcontextprotocol/server-filesystem /path/to/allow
 ```
 
-Point your MCP client at `mayi.mjs` (with its arguments) instead of at the
+Point your MCP client at `mayi` (with its arguments) instead of at the
 real server directly — mayI spawns the real server itself and speaks the
 same stdio protocol on its own stdin/stdout, so from the client's
 perspective nothing else changes.
@@ -43,10 +69,15 @@ perspective nothing else changes.
 Flags:
 
 - `--policy <file>` — path to the policy YAML file. Defaults to
-  `policy.yaml` in the current directory.
+  `policy.yaml` in the current directory if it exists, otherwise the
+  built-in default described above.
 - `--audit <file>` — path to the audit log. Defaults to `audit.jsonl`.
 - `--audit-include-args` — include each call's arguments in the audit log.
   Off by default; see [Audit logging](#audit-logging).
+- `-h`, `--help` — print usage and exit.
+
+Run from a git checkout instead of installed: replace `mayi` above with
+`node mayi.mjs`.
 
 ## Policy
 

@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 // mayI -- MCP proxy with a policy engine and human-in-the-loop approval.
 // Spawns a real MCP server as a child process and forwards every line
 // stdin -> child.stdin and child.stdout -> stdout unchanged, EXCEPT
@@ -12,26 +13,111 @@
 //            while a prompt is pending -- only that one request waits.
 // Everything that isn't a tools/call request is still pure passthrough.
 
-import { readFileSync, createReadStream, createWriteStream, appendFileSync } from "node:fs";
+import { readFileSync, createReadStream, createWriteStream, appendFileSync, existsSync } from "node:fs";
 import { spawn } from "node:child_process";
 import { createInterface } from "node:readline";
 import { parse as parseYaml } from "yaml";
 
+const HELP_TEXT = `mayi -- an MCP proxy that enforces allow/deny/ask policy on tool calls
+
+Usage:
+  mayi [--policy <file>] [--audit <file>] [--audit-include-args] -- <command> [args...]
+
+Everything after -- is the real MCP server to spawn and front.
+
+Options:
+  --policy <file>       Policy YAML file. Defaults to ./policy.yaml if it
+                         exists, otherwise a built-in conservative default
+                         (reads allowed, everything else asks).
+  --audit <file>        Audit log path. Defaults to ./audit.jsonl.
+  --audit-include-args  Include call arguments in the audit log. Off by
+                         default -- arguments can carry file contents,
+                         paths, or other sensitive data.
+  -h, --help            Show this help and exit.
+
+Example:
+  mayi --policy policy.yaml -- npx -y @modelcontextprotocol/server-filesystem /path/to/allow`;
+
+if (process.argv.includes("--help") || process.argv.includes("-h")) {
+  console.log(HELP_TEXT);
+  process.exit(0);
+}
+
 const sepIndex = process.argv.indexOf("--");
 if (sepIndex === -1 || sepIndex === process.argv.length - 1) {
-  console.error("usage: node mayi.mjs [--policy <file>] [--audit <file>] [--audit-include-args] -- <command> [args...]");
+  console.error("mayi: no server command given -- everything after \"--\" is the command to run.");
+  console.error();
+  console.error(HELP_TEXT);
   process.exit(1);
 }
 const beforeSep = process.argv.slice(2, sepIndex);
 const policyFlagIndex = beforeSep.indexOf("--policy");
-const policyPath = policyFlagIndex === -1 ? "policy.yaml" : beforeSep[policyFlagIndex + 1];
+const explicitPolicyPath = policyFlagIndex === -1 ? null : beforeSep[policyFlagIndex + 1];
 const auditFlagIndex = beforeSep.indexOf("--audit");
 const auditPath = auditFlagIndex === -1 ? "audit.jsonl" : beforeSep[auditFlagIndex + 1];
 const auditIncludeArgs = beforeSep.includes("--audit-include-args");
 const [command, ...args] = process.argv.slice(sepIndex + 1);
 
-const policy = parseYaml(readFileSync(policyPath, "utf8"));
+// Zero-config fallback: if no --policy was given and there's no
+// policy.yaml in the current directory, use a built-in conservative
+// default rather than requiring a config file to exist before mayI can
+// run at all. Reads are safe on their own; everything else asks, so a
+// brand-new user gets prompted rather than silently allowed or blocked.
+const BUILTIN_DEFAULT_POLICY = {
+  rules: [
+    { tool: "read_*", action: "allow" },
+    { tool: "list_*", action: "allow" },
+    { tool: "get_*", action: "allow" },
+    { tool: "search_*", action: "allow" },
+    { tool: "*", action: "ask" },
+  ],
+};
 
+let policyPath = explicitPolicyPath;
+let policy;
+let policySource;
+if (policyPath) {
+  if (!existsSync(policyPath)) {
+    console.error(`mayi: policy file not found: ${policyPath}`);
+    process.exit(1);
+  }
+  policy = loadPolicyFile(policyPath);
+  policySource = policyPath;
+} else if (existsSync("policy.yaml")) {
+  policyPath = "policy.yaml";
+  policy = loadPolicyFile(policyPath);
+  policySource = policyPath;
+} else {
+  policy = BUILTIN_DEFAULT_POLICY;
+  policySource = "built-in default (reads allowed, everything else asks)";
+}
+
+// Reads and parses a policy YAML file, exiting with a clear message
+// instead of a raw stack trace on malformed YAML or a missing/invalid
+// rules list -- the two ways a hand-edited policy file commonly breaks.
+function loadPolicyFile(path) {
+  let raw;
+  try {
+    raw = readFileSync(path, "utf8");
+  } catch (err) {
+    console.error(`mayi: couldn't read policy file ${path}: ${err.message}`);
+    process.exit(1);
+  }
+  let parsed;
+  try {
+    parsed = parseYaml(raw);
+  } catch (err) {
+    console.error(`mayi: policy file ${path} is not valid YAML: ${err.message}`);
+    process.exit(1);
+  }
+  if (!parsed || !Array.isArray(parsed.rules)) {
+    console.error(`mayi: policy file ${path} must have a top-level "rules" list.`);
+    process.exit(1);
+  }
+  return parsed;
+}
+
+console.error(`[CONFIG] policy: ${policySource}`);
 console.error(`[CONFIG] audit mode: ${auditIncludeArgs ? "decisions + args" : "decisions only"}`);
 
 // Appends one decision to the audit log. fs.appendFileSync issues a

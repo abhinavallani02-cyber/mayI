@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "An MCP proxy that enforces allow/deny/ask policy on tool calls between an MCP client and server.",
   "main": "mayi.mjs",
+  "bin": {
+    "mayi": "mayi.mjs"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
