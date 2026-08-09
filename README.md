@@ -1,5 +1,7 @@
 # mayI
 
+[![npm version](https://img.shields.io/npm/v/mayi-mcp.svg)](https://www.npmjs.com/package/mayi-mcp)
+
 mayI is a proxy for [MCP](https://modelcontextprotocol.io) (Model Context
 Protocol), the standard AI agents use to call external tools. It sits
 between an MCP client (an AI agent) and an MCP server (a set of tools the
@@ -23,23 +25,20 @@ review. Treat it as a working prototype, not a hardened boundary.
 
 ## Install
 
-Not published to npm yet. For now, run it from a checkout:
+No install needed to try it — run it directly with `npx`:
 
 ```
-git clone https://github.com/abhinavallani02-cyber/mayI
-cd mayI && npm install
-node mayi.mjs -- npx -y @modelcontextprotocol/server-filesystem /path/to/allow
+npx mayi-mcp -- npx -y @modelcontextprotocol/server-filesystem /path/to/allow
 ```
 
-Once it's published, the intended usage is `npx` (no install needed) or a
-global install:
+Or install it globally:
 
 ```
-npx mayi -- npx -y @modelcontextprotocol/server-filesystem /path/to/allow
-
-npm install -g mayi
+npm install -g mayi-mcp
 mayi -- npx -y @modelcontextprotocol/server-filesystem /path/to/allow
 ```
+
+The package is published as `mayi-mcp`; the command it installs is `mayi`.
 
 With no `--policy` flag and no `policy.yaml` in the current directory,
 mayI runs with a built-in conservative default: reads are allowed,
@@ -76,8 +75,14 @@ Flags:
   Off by default; see [Audit logging](#audit-logging).
 - `-h`, `--help` — print usage and exit.
 
-Run from a git checkout instead of installed: replace `mayi` above with
-`node mayi.mjs`.
+Working on mayI itself? Clone the repo and run it straight from source
+instead of installing — replace `mayi` above with `node mayi.mjs`:
+
+```
+git clone https://github.com/abhinavallani02-cyber/mayI
+cd mayI && npm install
+node mayi.mjs -- npx -y @modelcontextprotocol/server-filesystem /path/to/allow
+```
 
 ## Policy
 
