@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// mayI -- MCP proxy with a policy engine and human-in-the-loop approval.
+// may-i -- MCP proxy with a policy engine and human-in-the-loop approval.
 // Spawns a real MCP server as a child process and forwards every line
 // stdin -> child.stdin and child.stdout -> stdout unchanged, EXCEPT
 // tools/call requests: those are checked against policy.yaml first.
@@ -60,7 +60,7 @@ const [command, ...args] = process.argv.slice(sepIndex + 1);
 
 // Zero-config fallback: if no --policy was given and there's no
 // policy.yaml in the current directory, use a built-in conservative
-// default rather than requiring a config file to exist before mayI can
+// default rather than requiring a config file to exist before may-i can
 // run at all. Reads are safe on their own; everything else asks, so a
 // brand-new user gets prompted rather than silently allowed or blocked.
 const BUILTIN_DEFAULT_POLICY = {
@@ -361,14 +361,14 @@ child.on("exit", (code, signal) => {
 });
 
 child.on("error", (err) => {
-  console.error(`mayI: failed to start child process: ${err.message}`);
+  console.error(`mayi: failed to start child process: ${err.message}`);
   process.exit(1);
 });
 
-// If mayI itself is killed, kill the child too -- no orphaned processes.
+// If may-i itself is killed, kill the child too -- no orphaned processes.
 // Registering a signal listener at all disables Node's default behavior
 // of exiting on that signal, so this handler must exit explicitly --
-// otherwise mayI hangs forever after Ctrl+C, waiting on nothing.
+// otherwise may-i hangs forever after Ctrl+C, waiting on nothing.
 for (const sig of ["SIGINT", "SIGTERM", "SIGHUP"]) {
   process.on(sig, () => {
     child.kill(sig);

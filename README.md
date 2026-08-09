@@ -1,8 +1,8 @@
-# mayI
+# may-i
 
 [![npm version](https://img.shields.io/npm/v/mayi-mcp.svg)](https://www.npmjs.com/package/mayi-mcp)
 
-mayI is a proxy for [MCP](https://modelcontextprotocol.io) (Model Context
+may-i is a proxy for [MCP](https://modelcontextprotocol.io) (Model Context
 Protocol), the standard AI agents use to call external tools. It sits
 between an MCP client (an AI agent) and an MCP server (a set of tools the
 agent can call — read/write files, run queries, send messages, and so on),
@@ -41,7 +41,7 @@ mayi -- npx -y @modelcontextprotocol/server-filesystem /path/to/allow
 The package is published as `mayi-mcp`; the command it installs is `mayi`.
 
 With no `--policy` flag and no `policy.yaml` in the current directory,
-mayI runs with a built-in conservative default: reads are allowed,
+may-i runs with a built-in conservative default: reads are allowed,
 everything else asks. So the commands above work with zero config — it'll
 prompt you the first time the agent tries to write, move, or otherwise
 change anything.
@@ -61,7 +61,7 @@ mayi --policy policy.yaml --audit audit.jsonl -- \
 ```
 
 Point your MCP client at `mayi` (with its arguments) instead of at the
-real server directly — mayI spawns the real server itself and speaks the
+real server directly — may-i spawns the real server itself and speaks the
 same stdio protocol on its own stdin/stdout, so from the client's
 perspective nothing else changes.
 
@@ -75,7 +75,7 @@ Flags:
   Off by default; see [Audit logging](#audit-logging).
 - `-h`, `--help` — print usage and exit.
 
-Working on mayI itself? Clone the repo and run it straight from source
+Working on may-i itself? Clone the repo and run it straight from source
 instead of installing — replace `mayi` above with `node mayi.mjs`:
 
 ```
@@ -111,17 +111,17 @@ The three actions:
 
 - **`allow`** — the call is forwarded to the server immediately, no
   logging beyond the normal verdict line.
-- **`deny`** — the call never reaches the server. mayI sends a JSON-RPC
+- **`deny`** — the call never reaches the server. may-i sends a JSON-RPC
   error back to the client on the same request id instead.
-- **`ask`** — mayI prints the tool name and arguments to the terminal and
+- **`ask`** — may-i prints the tool name and arguments to the terminal and
   waits (up to 30 seconds) for a human to type `y` or `n`. `y` forwards
   the call as if it were `allow`; `n`, any other answer, or a timeout
   denies it as if it were `deny`. If there's no controlling terminal to
-  ask (e.g. mayI's own input/output are both piped, with no tty attached),
+  ask (e.g. may-i's own input/output are both piped, with no tty attached),
   `ask` always resolves to deny — there's no human to ask, so the safe
   default applies.
 
-If no rule matches a call, mayI defaults to `ask` rather than silently
+If no rule matches a call, may-i defaults to `ask` rather than silently
 allowing it.
 
 ## Audit logging
