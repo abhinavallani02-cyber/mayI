@@ -1,0 +1,62 @@
+# Decision-only logging (default, safer):
+#   node mayi.mjs --policy policy.yaml --audit audit.jsonl -- <server>
+#
+# Include args in logs (more detailed, less private):
+#   node mayi.mjs --policy policy.yaml --audit audit.jsonl --audit-include-args -- <server>
+
+rules:
+  # Reads are never dangerous on their own -- always allow.
+  - tool: read_*
+    action: allow
+  - tool: list_*
+    action: allow
+  - tool: directory_tree
+    action: allow
+  - tool: get_file_info
+    action: allow
+  - tool: search_files
+    action: allow
+
+  # Hard deny: writes/edits/moves/deletes/new-dirs under paths that
+  # should never be touched by an agent, no matter what. These don't
+  # even ask -- an ask you'll reflexively approve at 2am isn't a real
+  # control. path_prefix is checked against path/source/destination.
+  - tool: write_file
+    path_prefix: /etc
+    action: deny
+  - tool: edit_file
+    path_prefix: /etc
+    action: deny
+  - tool: move_file
+    path_prefix: /etc
+    action: deny
+  - tool: create_directory
+    path_prefix: /etc
+    action: deny
+
+  - tool: write_file
+    path_prefix: /prod
+    action: deny
+  - tool: edit_file
+    path_prefix: /prod
+    action: deny
+  - tool: move_file
+    path_prefix: /prod
+    action: deny
+  - tool: create_directory
+    path_prefix: /prod
+    action: deny
+
+  # Everything else that mutates the filesystem: ask first.
+  - tool: write_*
+    action: ask
+  - tool: edit_*
+    action: ask
+  - tool: move_*
+    action: ask
+  - tool: create_*
+    action: ask
+
+  # Unknown tool, not covered above: ask rather than silently allow.
+  - tool: "*"
+    action: ask

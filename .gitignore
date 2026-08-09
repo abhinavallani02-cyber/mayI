@@ -1,0 +1,6 @@
+node_modules/
+audit.jsonl
+audit-*.jsonl
+sandbox
+.DS_Store
+.mcp.json
