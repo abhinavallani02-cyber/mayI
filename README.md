@@ -1,13 +1,16 @@
 # mayI
 
-mayI is a proxy that sits between an MCP client (an AI agent) and an MCP
-server (a set of tools), enforcing a policy on every `tools/call` request
-before it reaches the server. For each call it decides `allow`, `deny`, or
-`ask` — and `ask` pauses to prompt a human at the terminal before letting
-the call through. Everything else (initialization, tool listing, responses,
-notifications) passes through unmodified. The goal is that a human can put
-real limits on what an agent is allowed to do without needing to trust the
-agent, or the server, to enforce them itself.
+mayI is a proxy for [MCP](https://modelcontextprotocol.io) (Model Context
+Protocol), the standard AI agents use to call external tools. It sits
+between an MCP client (an AI agent) and an MCP server (a set of tools the
+agent can call — read/write files, run queries, send messages, and so on),
+enforcing a policy on every `tools/call` request before it reaches the
+server. For each call it decides `allow`, `deny`, or `ask` — and `ask`
+pauses to prompt a human at the terminal before letting the call through.
+Everything else (initialization, tool listing, responses, notifications)
+passes through unmodified. The goal is that a human can put real limits on
+what an agent is allowed to do without needing to trust the agent, or the
+server, to enforce them itself.
 
 ## Status
 
