@@ -1,5 +1,5 @@
 {
-  "name": "mayi",
+  "name": "mayi-mcp",
   "version": "1.0.0",
   "description": "An MCP proxy that enforces allow/deny/ask policy on tool calls between an MCP client and server.",
   "main": "mayi.mjs",
@@ -15,7 +15,11 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": ["mcp", "proxy", "policy"],
+  "keywords": [
+    "mcp",
+    "proxy",
+    "policy"
+  ],
   "author": "Abhinav Allani",
   "license": "MIT",
   "repository": {
